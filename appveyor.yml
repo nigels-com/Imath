@@ -1,0 +1,51 @@
+# Windows CI build via the Appveyor service
+
+version: '{build}'
+
+# branches to build
+branches:
+  only:
+    - master
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - git config --global core.autocrlf input
+  - set QTDIR=C:\Qt\5.6\msvc2015_64
+  - set PATH=%QTDIR%\bin;%PATH%
+
+# Build matrix variables -
+#   * environment
+#   * platform
+#   * configuration
+
+image: Visual Studio 2017
+
+environment:
+  matrix:
+    - COMPILER: "Visual Studio 14 2015 Win64"
+    - COMPILER: "Visual Studio 15 2017 Win64"
+
+# build platform, i.e. x86, x64, Any CPU.
+platform:
+  - x64
+
+configuration:
+  - Debug
+  - Release
+
+build_script:
+  - echo --------------------------------------------------------------------------------
+  - echo Appveyor environment info:
+  - echo COMPILER = %COMPILER%, CONFIGURATION = %CONFIGURATION%
+# - cmake -h
+  - rem --------------------------------------------------------------------------------
+  - mkdir build
+  - cd build
+  - cmake -G "%COMPILER%" ..
+  - cmake --build . --config "%CONFIGURATION%"
+  - cd ..
+
+test_script:
+  - cd build
+  - ctest --timeout 100 -C "%CONFIGURATION%"
+  - cd ..
